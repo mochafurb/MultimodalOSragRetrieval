@@ -1,0 +1,58 @@
+[
+  {
+    "file_path": "01_OS_Processes_Threads_and_CPU_Scheduling.pdf",
+    "engagement_id": "OS-SCHED-2024-001",
+    "client": "Linux Kernel & Scheduler Working Group",
+    "country": "Global",
+    "practice": "CPU Scheduling & Concurrency",
+    "year": 2024
+  },
+  {
+    "file_path": "02_OS_Memory_Management_and_Virtual_Memory.pdf",
+    "engagement_id": "OS-MEM-2024-002",
+    "client": "Memory Management Architecture Board",
+    "country": "Global",
+    "practice": "Virtual Memory & Paging Subsystems",
+    "year": 2024
+  },
+  {
+    "file_path": "03_OS_Concurrency_Synchronization_and_Deadlocks.pdf",
+    "engagement_id": "OS-SYNC-2024-003",
+    "client": "POSIX Concurrency Standards Committee",
+    "country": "Global",
+    "practice": "Synchronization & Deadlock Prevention",
+    "year": 2024
+  },
+  {
+    "file_path": "04_OS_Storage_File_Systems_and_Disk_IO.pdf",
+    "engagement_id": "OS-FS-2024-004",
+    "client": "Storage & Block Device Working Group",
+    "country": "Global",
+    "practice": "File Systems & I/O Schedulers",
+    "year": 2024
+  },
+  {
+    "file_path": "05_OS_Kernel_Architecture_Syscalls_and_Security.pdf",
+    "engagement_id": "OS-KERN-2024-005",
+    "client": "Operating Systems Security & Kernel Architecture",
+    "country": "Global",
+    "practice": "Kernel Architectures & Syscall Subsystems",
+    "year": 2024
+  },
+  {
+    "file_path": "06_OS_Interprocess_Communication_and_Distributed_OS.pdf",
+    "engagement_id": "OS-IPC-2024-006",
+    "client": "Distributed Systems & IPC Forum",
+    "country": "Global",
+    "practice": "IPC Primitives & Distributed Networking",
+    "year": 2024
+  },
+  {
+    "file_path": "07_OS_Virtualization_Containers_and_Resource_Isolation.pdf",
+    "engagement_id": "OS-VIRT-2024-007",
+    "client": "Cloud Hypervisors & Container Runtime Standards",
+    "country": "Global",
+    "practice": "Virtualization & Container Isolation",
+    "year": 2024
+  }
+]

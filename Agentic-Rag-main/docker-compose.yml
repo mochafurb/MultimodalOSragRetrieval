@@ -1,0 +1,124 @@
+# ─────────────────────────────────────────────────────────────────────────────
+#  Database Management Agentic RAG — Docker Compose
+#
+#  HOW TO USE:
+#
+#  1. First time setup (builds image, starts DB, initialises schema):
+#       docker compose up -d postgres
+#       docker compose run --rm init
+#
+#  2. Ingest documents (put PDFs/PPTX/DOCX/XLSX in ./data):
+#       docker compose run --rm ingest
+#
+#     With a manifest and custom docs folder:
+#       docker compose run --rm ingest \
+#           python scripts/ingest.py --manifest scripts/dbms_documents_manifest.json --path /data
+#
+#  3. Start the API:
+#       docker compose up -d api
+#
+#  4. Everything at once (first run):
+#       docker compose up -d
+#
+#  All Python dependencies live inside the Docker image built from infra/Dockerfile.
+# ─────────────────────────────────────────────────────────────────────────────
+
+x-app-env: &app-env
+  env_file: .env
+  environment:
+    DATABASE_URL: postgresql+asyncpg://dbms_rag_user:localdev_password@postgres:5432/dbms_rag
+    APP_ENV: development
+  depends_on:
+    postgres:
+      condition: service_healthy
+
+x-app-build: &app-build
+  build:
+    context: .
+    dockerfile: infra/Dockerfile
+
+services:
+
+  # ── PostgreSQL metadata store ──────────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: dbms_rag_postgres
+    environment:
+      POSTGRES_DB: dbms_rag
+      POSTGRES_USER: dbms_rag_user
+      POSTGRES_PASSWORD: localdev_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U dbms_rag_user -d dbms_rag" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # ── One-shot: initialise DB schema + Pinecone index ────────────────────────
+  init:
+    <<: [ *app-build, *app-env ]
+    container_name: dbms_rag_init
+    volumes:
+      - .:/app
+      - hf_cache:/root/.cache/huggingface
+    command: python scripts/init_db.py
+    profiles: [ "tools" ]
+
+  # ── One-shot: ingest documents ─────────────────────────────────────────────
+  ingest:
+    <<: [ *app-build, *app-env ]
+    container_name: dbms_rag_ingest
+    volumes:
+      - .:/app
+      - ${DOCS_PATH:-./data}:/data
+      - hf_cache:/root/.cache/huggingface
+    command: >
+      python scripts/ingest.py
+        --manifest scripts/dbms_documents_manifest.json
+        --path /data
+    profiles: [ "tools" ]
+
+  # ── FastAPI RAG Agent ──────────────────────────────────────────────────────
+  api:
+    <<: [ *app-build, *app-env ]
+    container_name: dbms_rag_api
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+      - hf_cache:/root/.cache/huggingface
+    command: uvicorn api.main:app --host 0.0.0.0 --port 8000 --reload
+
+  # ── Streamlit UI ───────────────────────────────────────────────────────────
+  streamlit:
+    <<: [ *app-build, *app-env ]
+    container_name: dbms_rag_streamlit
+    ports:
+      - "8501:8501"
+    volumes:
+      - .:/app
+    environment:
+      API_URL: http://api:8000
+    depends_on:
+      - api
+    command: streamlit run UI/streamlit_app.py --server.port 8501 --server.address 0.0.0.0
+
+  # ── Teams Bot ──────────────────────────────────────────────────────────────
+  bot:
+    <<: [ *app-build, *app-env ]
+    container_name: dbms_rag_bot
+    environment:
+      AGENT_API_URL: http://api:8000
+    ports:
+      - "3978:3978"
+    depends_on:
+      - api
+    command: python teams/app.py
+    profiles: [ "teams" ]
+
+volumes:
+  postgres_data:
+  hf_cache:
